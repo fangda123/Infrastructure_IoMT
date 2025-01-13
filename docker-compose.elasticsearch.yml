@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    platform: linux/arm64
+    container_name: elasticsearch
+    hostname: ${ELASTICSEARCH_HOSTNAME}
+    ports:
+      - "${ES_HTTP_PORT}:9200"
+      - "${ES_TCP_PORT}:9300"
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE} -Xmx${ES_HEAP_SIZE}
+      - xpack.security.enabled=true
+      - ELASTIC_USERNAME=${ES_USERNAME}
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
+      - node.name=${ES_NODE_NAME}
+      - cluster.name=${ES_CLUSTER_NAME}
+      - bootstrap.memory_lock=true
+      - network.host=0.0.0.0
+      - http.port=${ES_HTTP_PORT}
+      - transport.port=${ES_TCP_PORT}
+      - xpack.security.enrollment.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./services/elasticsearch/setup:/setup
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -u ${ES_USERNAME}:${ES_PASSWORD} http://localhost:${ES_HTTP_PORT} >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  setup_users:
+    image: curlimages/curl:latest
+    volumes:
+      - ./services/elasticsearch/setup:/setup
+    networks:
+      - iomt-network
+    depends_on:
+      - elasticsearch
+    command: >
+      sh -c '
+        echo "Waiting for Elasticsearch..."
+        while ! curl -s "http://elasticsearch:${ES_HTTP_PORT}" > /dev/null; do sleep 1; done;
+        echo "Setting up users..."
+        curl -X POST -u "${ES_USERNAME}:${ES_PASSWORD}" "http://elasticsearch:${ES_HTTP_PORT}/_security/user/kibana_system/_password" -H "Content-Type: application/json" -d "{\"password\":\"${ES_PASSWORD}\"}"
+        echo "Setup completed"
+      '
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    platform: linux/arm64
+    container_name: kibana
+    hostname: ${KIBANA_HOSTNAME}
+    ports:
+      - "${KIBANA_PORT}:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:${ES_HTTP_PORT}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD}
+      - SERVER_PORT=${KIBANA_PORT}
+      - SERVER_NAME=kibana
+      - SERVER_PUBLICBASEURL=http://localhost:${KIBANA_PORT}
+      - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
+      - NODE_OPTIONS=--openssl-legacy-provider
+    depends_on:
+      - elasticsearch
+      - setup_users
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:${KIBANA_PORT}/api/status | grep -q 'Looking good'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  iomt-network:
+    external: true
+
+volumes:
+  elasticsearch_data: 

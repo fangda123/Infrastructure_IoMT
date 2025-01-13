@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  emqx:
+    image: emqx/emqx:latest
+    container_name: ${EMQX_NAME}
+    hostname: ${EMQX_HOSTNAME}
+    ports:
+      - "${EMQX_MQTT_PORT}:1883"      # MQTT port
+      - "${EMQX_WS_PORT}:8083"      # MQTT/WebSocket port
+      - "${EMQX_WSS_PORT}:8084"      # MQTT/WebSocket/SSL port
+      - "${EMQX_SSL_PORT}:8883"      # MQTT/SSL port
+      - "${EMQX_DASHBOARD_PORT}:18083"    # Dashboard port
+    environment:
+      - EMQX_NAME=${EMQX_NAME}
+      - EMQX_HOST=${EMQX_HOST}
+      - EMQX_DASHBOARD__DEFAULT_USERNAME=${EMQX_DASHBOARD_USER}
+      - EMQX_DASHBOARD__DEFAULT_PASSWORD=${EMQX_DASHBOARD_PASSWORD}
+      - EMQX_ALLOW_ANONYMOUS=${EMQX_ALLOW_ANONYMOUS}
+      - EMQX_ACL_NOMATCH=${EMQX_ACL_NOMATCH}
+      - EMQX_AUTH__USER__1__USERNAME=${EMQX_DASHBOARD_USER}
+      - EMQX_AUTH__USER__1__PASSWORD=${EMQX_DASHBOARD_PASSWORD}
+      - EMQX_AUTH__USER__2__USERNAME=device
+      - EMQX_AUTH__USER__2__PASSWORD=device123
+      - EMQX_AUTH__ACL__1__LOGIN=${EMQX_DASHBOARD_USER}
+      - EMQX_AUTH__ACL__1__TOPIC=devices/#
+      - EMQX_AUTH__ACL__1__ACTION=pubsub
+      - EMQX_AUTH__ACL__2__LOGIN=device
+      - EMQX_AUTH__ACL__2__TOPIC=devices/+/data
+      - EMQX_AUTH__ACL__2__ACTION=pubsub
+      - EMQX_LOADED_PLUGINS="emqx_management,emqx_dashboard,emqx_auth_username"
+      - EMQX_NODE__COOKIE=emqxsecretcookie
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+      - ./services/emqx/plugins:/opt/emqx/etc/plugins
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx_ctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  iomt-network:
+    external: true
+
+volumes:
+  emqx_data:
+  emqx_log: 

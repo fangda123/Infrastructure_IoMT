@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    hostname: ${MAILPIT_HOSTNAME}
+    ports:
+      - "${MAILPIT_SMTP_PORT}:1025"  # SMTP port
+      - "${MAILPIT_UI_PORT}:8025"  # Web UI port
+    environment:
+      - MP_SMTP_AUTH_ACCEPT_ANY=1
+      - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:${MAILPIT_UI_PORT}/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  iomt-network:
+    external: true 

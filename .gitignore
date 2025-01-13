@@ -1,0 +1,31 @@
+# Environment variables
+.env
+.env.*
+
+# Volumes data
+data/
+volumes/
+
+# Logs
+logs/
+*.log
+
+# Keys and certificates
+*.key
+*.crt
+*.pem
+services/vault/keys/*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp 

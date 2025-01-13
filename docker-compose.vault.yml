@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: vault
+    hostname: ${VAULT_HOSTNAME}
+    ports:
+      - "${VAULT_PORT}:8200"
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault_data:/vault/file
+      - ./services/vault/config:/vault/config:ro
+      - ./services/vault/policies:/vault/policies:ro
+      - ./services/vault/setup:/vault/setup:ro
+      - ./services/vault/keys:/vault/keys
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    entrypoint: 
+      - "/bin/sh"
+      - "-c"
+      - |
+        apk add --no-cache jq
+
+        vault server -config=/vault/config/vault.hcl &
+        
+        sleep 5
+        
+        /vault/setup/init.sh
+        
+        wait
+
+networks:
+  iomt-network:
+    external: true
+
+volumes:
+  vault_data: 

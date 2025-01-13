@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  kong-database:
+    image: postgres:latest
+    container_name: kong-database
+    hostname: ${KONG_DATABASE_HOSTNAME}
+    environment:
+      - POSTGRES_USER=${KONG_PG_USER}
+      - POSTGRES_DB=${KONG_PG_DATABASE}
+      - POSTGRES_PASSWORD=${KONG_PG_PASSWORD}
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kong-migration:
+    image: kong:latest
+    command: kong migrations bootstrap
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_USER=${KONG_PG_USER}
+      - KONG_PG_PASSWORD=${KONG_PG_PASSWORD}
+      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
+    networks:
+      - iomt-network
+    depends_on:
+      - kong-database
+    restart: on-failure
+
+  kong:
+    image: kong:latest
+    container_name: kong
+    hostname: ${KONG_HOSTNAME}
+    ports:
+      - "${KONG_PROXY_PORT}:8000"  # Proxy
+      - "${KONG_PROXY_SSL_PORT}:8443"  # Proxy SSL
+      - "${KONG_ADMIN_PORT}:8001"  # Admin API
+      - "${KONG_ADMIN_SSL_PORT}:8444"  # Admin API SSL
+      - "${KONG_MANAGER_PORT}:8002"  # Kong Manager UI
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_USER=${KONG_PG_USER}
+      - KONG_PG_PASSWORD=${KONG_PG_PASSWORD}
+      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:${KONG_ADMIN_PORT}
+      - KONG_ADMIN_GUI_URL=http://localhost:${KONG_MANAGER_PORT}
+      - KONG_ADMIN_GUI_PATH=/manager
+      - KONG_PROXY_LISTEN=0.0.0.0:${KONG_PROXY_PORT}
+      - KONG_PROXY_LISTEN_SSL=0.0.0.0:${KONG_PROXY_SSL_PORT}
+      - KONG_ADMIN_SSL_LISTEN=0.0.0.0:${KONG_ADMIN_SSL_PORT}
+      - KONG_PLUGINS=bundled,jwt,rate-limiting,cors
+      - KONG_ADMIN_GUI_AUTH=basic-auth
+      - KONG_ENFORCE_RBAC=off
+      - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${KONG_PG_PASSWORD}","storage":"kong","cookie_secure":false}
+      - KONG_ADMIN_GUI_AUTH_CONF={"credential_names":["admin"],"header_names":["apikey"]}
+      - KONG_ADMIN_USER=${KONG_ADMIN_USER}
+      - KONG_ADMIN_PASSWORD=${KONG_ADMIN_PASSWORD}
+    networks:
+      - iomt-network
+    depends_on:
+      - kong-database
+      - kong-migration
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  iomt-network:
+    external: true
+
+volumes:
+  kong_data: 

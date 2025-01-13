@@ -1,0 +1,15 @@
+version: '3.8'
+
+networks:
+  iomt-network:
+    name: iomt-network
+
+include:
+  - docker-compose.mongodb.yml
+  - docker-compose.redis.yml
+  - docker-compose.emqx.yml
+  - docker-compose.elasticsearch.yml
+  - docker-compose.prometheus.yml
+  - docker-compose.mailpit.yml
+  - docker-compose.vault.yml
+  - docker-compose.kong.yml 
