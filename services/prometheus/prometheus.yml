@@ -16,26 +16,26 @@ rule_files:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['${PROMETHEUS_HOSTNAME}:${PROMETHEUS_PORT}']
 
   - job_name: 'backend'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['backend:3000']
-    
+      - targets: ['${BACKEND_HOSTNAME}:${BACKEND_PORT}']
+
   - job_name: 'mongodb'
     static_configs:
-      - targets: ['mongodb:27017']
+      - targets: ['${MONGODB_HOSTNAME}:${MONGO_PORT}']
 
   - job_name: 'redis'
     static_configs:
-      - targets: ['redis:6379']
+      - targets: ['${REDIS_HOSTNAME}:${REDIS_PORT}']
 
   - job_name: 'emqx'
     static_configs:
-      - targets: ['emqx:18083']
+      - targets: ['${EMQX_HOSTNAME}:${EMQX_DASHBOARD_PORT}']
     metrics_path: '/api/v5/prometheus/stats'
     scheme: http
     basic_auth:
-      username: 'admin'
-      password: 'public' 
+      username: '${EMQX_DASHBOARD_USER}'
+      password: '${EMQX_DASHBOARD_PASSWORD}'

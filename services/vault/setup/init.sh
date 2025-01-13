@@ -3,7 +3,7 @@
 # รอให้ Vault Server พร้อม
 sleep 5
 
-export VAULT_ADDR='http://0.0.0.0:8200'
+export VAULT_ADDR="${VAULT_API_ADDR}"
 
 # ตรวจสอบสถานะ initialization
 INIT_STATUS=$(vault status 2>&1)
@@ -77,9 +77,9 @@ vault secrets enable -version=2 kv 2>/dev/null || true
 
 # ตั้งค่า Vault เอง
 vault kv put kv/vault/config \
-    api_addr="http://0.0.0.0:8200" \
-    cluster_addr="https://0.0.0.0:8201" \
-    port="8200" \
+    api_addr="${VAULT_API_ADDR}" \
+    cluster_addr="${VAULT_CLUSTER_ADDR}" \
+    port="${VAULT_PORT}" \
     tls_disable="1" \
     storage_path="/vault/file" \
     ui="true" \
@@ -103,60 +103,60 @@ done
 
 # MongoDB
 vault kv put kv/mongodb/config \
-    username="root" \
-    password="example" \
-    database="iomt_db" \
-    express_user="admin" \
-    express_pass="admin123" \
-    cache_size="2"
+    username="${MONGO_ROOT_USERNAME}" \
+    password="${MONGO_ROOT_PASSWORD}" \
+    database="${MONGO_DATABASE}" \
+    express_user="${MONGO_EXPRESS_USERNAME}" \
+    express_pass="${MONGO_EXPRESS_PASSWORD}" \
+    cache_size="${MONGO_CACHE_SIZE}"
 
 # Redis
 vault kv put kv/redis/config \
-    port="6379" \
-    password="redis123" \
-    max_memory="2gb" \
-    max_clients="10000"
+    port="${REDIS_PORT}" \
+    password="${REDIS_PASSWORD}" \
+    max_memory="${REDIS_MAX_MEMORY}" \
+    max_clients="${REDIS_MAX_CLIENTS}"
 
 # EMQX
 vault kv put kv/emqx/config \
-    dashboard_user="admin" \
-    dashboard_pass="public" \
-    allow_anonymous="false" \
-    acl_nomatch="deny" \
-    mqtt_port="1883" \
-    ws_port="8083" \
-    wss_port="8084" \
-    ssl_port="8883" \
-    dashboard_port="18083"
+    dashboard_user="${EMQX_DASHBOARD_USER}" \
+    dashboard_pass="${EMQX_DASHBOARD_PASSWORD}" \
+    allow_anonymous="${EMQX_ALLOW_ANONYMOUS}" \
+    acl_nomatch="${EMQX_ACL_NOMATCH}" \
+    mqtt_port="${EMQX_MQTT_PORT}" \
+    ws_port="${EMQX_WS_PORT}" \
+    wss_port="${EMQX_WSS_PORT}" \
+    ssl_port="${EMQX_SSL_PORT}" \
+    dashboard_port="${EMQX_DASHBOARD_PORT}"
 
 # Elasticsearch
 vault kv put kv/elasticsearch/config \
-    username="elastic" \
-    password="elastic123" \
-    heap_size="512m" \
-    node_name="es01" \
-    cluster_name="iomt-cluster" \
-    http_port="9200" \
-    tcp_port="9300"
+    username="${ES_USERNAME}" \
+    password="${ES_PASSWORD}" \
+    heap_size="${ES_HEAP_SIZE}" \
+    node_name="${ES_NODE_NAME}" \
+    cluster_name="${ES_CLUSTER_NAME}" \
+    http_port="${ES_HTTP_PORT}" \
+    tcp_port="${ES_TCP_PORT}"
 
 # Kong
 vault kv put kv/kong/config \
-    pg_user="kong" \
-    pg_password="kongpass" \
-    pg_database="kong" \
-    pg_host="kong-database" \
-    proxy_port="8000" \
-    proxy_ssl_port="8443" \
-    admin_port="8001" \
-    admin_ssl_port="8444" \
-    manager_port="8002" \
+    pg_user="${KONG_PG_USER}" \
+    pg_password="${KONG_PG_PASSWORD}" \
+    pg_database="${KONG_PG_DATABASE}" \
+    pg_host="${KONG_DATABASE_HOSTNAME}" \
+    proxy_port="${KONG_PROXY_PORT}" \
+    proxy_ssl_port="${KONG_PROXY_SSL_PORT}" \
+    admin_port="${KONG_ADMIN_PORT}" \
+    admin_ssl_port="${KONG_ADMIN_SSL_PORT}" \
+    manager_port="${KONG_MANAGER_PORT}" \
     proxy_access_log="/dev/stdout" \
     admin_access_log="/dev/stdout" \
     proxy_error_log="/dev/stderr" \
     admin_error_log="/dev/stderr" \
-    admin_listen="0.0.0.0:8001" \
-    admin_ssl_listen="0.0.0.0:8444" \
-    admin_gui_url="http://localhost:8002" \
+    admin_listen="0.0.0.0:${KONG_ADMIN_PORT}" \
+    admin_ssl_listen="0.0.0.0:${KONG_ADMIN_SSL_PORT}" \
+    admin_gui_url="http://${KONG_HOSTNAME}:${KONG_MANAGER_PORT}" \
     admin_gui_path="/manager" \
     plugins="bundled,jwt,rate-limiting,cors" \
     migration_image="kong:3.3" \
@@ -167,4 +167,4 @@ echo "================ Vault Keys Location ================"
 echo "Unseal Keys: /vault/keys/unseal_key_[1-5]"
 echo "Root Token: /vault/keys/root_token"
 echo "Service Tokens: /vault/keys/[service]_token"
-echo "==================================================" 
+echo "=================================================="
