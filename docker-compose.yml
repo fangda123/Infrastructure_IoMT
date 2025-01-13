@@ -1,9 +1,5 @@
 version: '3.8'
 
-networks:
-  iomt-network:
-    name: iomt-network
-
 include:
   - docker-compose.mongodb.yml
   - docker-compose.redis.yml
