@@ -1,3 +1,25 @@
+// Wait for MongoDB to be ready
+function waitForMongo() {
+  try {
+    db = db.getSiblingDB(process.env.MONGO_DATABASE || 'iomt_db');
+    return true;
+  } catch (err) {
+    print("MongoDB not ready yet, retrying in 5 seconds...");
+    sleep(5000);
+    return false;
+  }
+}
+
+let retries = 30; // 30 retries * 5 seconds = 150 seconds max wait time
+while (retries > 0 && !waitForMongo()) {
+  retries--;
+}
+
+if (retries === 0) {
+  print("Failed to connect to MongoDB after multiple retries");
+  quit(1);
+}
+
 // Create database
 db = db.getSiblingDB(process.env.MONGO_DATABASE || 'iomt_db');
 
@@ -117,4 +139,4 @@ db.medical_variables.insertMany([
     unit: "°C",
     normalRange: { min: 36.1, max: 37.2 }
   }
-]); 
+]);
