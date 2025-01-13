@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   elasticsearch:
-    image: elasticsearch:8.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    platform: linux/arm64
     container_name: elasticsearch
     hostname: ${ELASTICSEARCH_HOSTNAME}
     ports:
@@ -38,7 +39,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s -u ${ES_USERNAME}:${ES_PASSWORD} http://localhost:${ES_HTTP_PORT} >/dev/null || exit 1"]
-      interval: 31s
+      interval: 30s
       timeout: 10s
       retries: 3
 
@@ -60,7 +61,8 @@ services:
       '
 
   kibana:
-    image: kibana:8.17.0
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    platform: linux/arm64
     container_name: kibana
     hostname: ${KIBANA_HOSTNAME}
     ports:
