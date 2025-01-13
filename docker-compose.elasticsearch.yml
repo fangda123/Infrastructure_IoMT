@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s -u ${ES_USERNAME}:${ES_PASSWORD} http://localhost:${ES_HTTP_PORT} >/dev/null || exit 1"]
-      interval: 30s
+      interval: 31s
       timeout: 10s
       retries: 3
 
