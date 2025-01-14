@@ -1,0 +1,56 @@
+services:
+  openproject:
+    image: openproject/openproject:15
+    container_name: openproject
+    ports:
+      - "9999:80"
+    environment:
+      OPENPROJECT_HOST__NAME: ${OPENPROJECT_HOSTNAME}
+      OPENPROJECT_HTTPS: "true"
+      OPENPROJECT_SECRET_KEY_BASE: ${OPENPROJECT_SECRET_KEY}
+      OPENPROJECT_DATABASE__HOST: ${OPENPROJECT_DATABASE__HOST}
+      OPENPROJECT_DATABASE__USER: ${OPENPROJECT_DATABASE__USER}
+      OPENPROJECT_DATABASE__PASSWORD: ${OPENPROJECT_DATABASE__PASSWORD}
+      OPENPROJECT_DATABASE__NAME: ${OPENPROJECT_DATABASE__NAME}
+      OPENPROJECT_DATABASE__PORT: ${OPENPROJECT_DATABASE__PORT:-5432}
+    volumes:
+      - openproject_assets:/var/openproject/assets
+      - openproject_config:/etc/openproject
+      - openproject_logs:/var/log/openproject
+      - openproject_pgdata:/var/openproject/pgdata
+    networks:
+      - openproject_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health_checks/default"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  openproject_assets:
+    driver: local
+  openproject_config:
+    driver: local
+  openproject_logs:
+    driver: local
+  openproject_pgdata:
+    driver: local
+
+networks:
+  openproject_network:
+    driver: bridge
