@@ -3,7 +3,7 @@ services:
     image: openproject/openproject:15
     container_name: openproject
     ports:
-      - "9999:80"
+      - "${OPENPROJECT_PORT}:80"
     environment:
       OPENPROJECT_HOST__NAME: ${OPENPROJECT_HOSTNAME}
       OPENPROJECT_HTTPS: "true"
