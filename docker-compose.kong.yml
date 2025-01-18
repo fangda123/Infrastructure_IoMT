@@ -7,7 +7,7 @@ services:
     command: kong migrations bootstrap
     environment:
       - KONG_DATABASE=postgres
-      - KONG_PG_HOST=58.82.168.179
+      - KONG_PG_HOST=${POSTGRES_HOSTNAME}
       - KONG_PG_PORT=${POSTGRES_PORT}
       - KONG_PG_USER=${POSTGRES_USER}
       - KONG_PG_PASSWORD=${POSTGRES_PASSWORD}
@@ -28,7 +28,7 @@ services:
       - "${KONG_MANAGER_PORT}:8002"  # Kong Manager UI
     environment:
       - KONG_DATABASE=postgres
-      - KONG_PG_HOST=${DATABASE_HOSTNAME}
+      - KONG_PG_HOST=${POSTGRES_HOSTNAME}
       - KONG_PG_PORT=${PG_PORT}
       - KONG_PG_USER=${POSTGRES_USER}
       - KONG_PG_PASSWORD=${POSTGRES_PASSWORD}
