@@ -17,7 +17,7 @@ services:
       - iomt-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${PG_USER}", "-P", "${PG_PASSWORD}", "-d", "${PG_DATABASE}"]
+      test: ["CMD", "pg_isready", "-U", "${PG_USER}", "-d", "${PG_DATABASE}"]
       interval: 10s
       timeout: 5s
       retries: 5
