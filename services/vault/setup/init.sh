@@ -141,8 +141,8 @@ vault kv put kv/elasticsearch/config \
 
 # Kong
 vault kv put kv/kong/config \
-    pg_user="${KONG_PG_USER}" \
-    pg_password="${KONG_PG_PASSWORD}" \
+    pg_user="${POSTGRES_USER}" \
+    pg_password="${POSTGRES_PASSWORD}" \
     pg_database="${KONG_PG_DATABASE}" \
     pg_host="${KONG_DATABASE_HOSTNAME}" \
     proxy_port="${KONG_PROXY_PORT}" \
