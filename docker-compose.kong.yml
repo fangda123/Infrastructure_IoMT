@@ -11,7 +11,7 @@ services:
       - KONG_PG_PORT=${PG_PORT}
       - KONG_PG_USER=${PG_USER}
       - KONG_PG_PASSWORD=${PG_PASSWORD}
-      - KONG_PG_DATABASE=${PG_DATABASE}
+      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
     networks:
       - iomt-network
     restart: on-failure
@@ -32,7 +32,7 @@ services:
       - KONG_PG_PORT=${PG_PORT}
       - KONG_PG_USER=${PG_USER}
       - KONG_PG_PASSWORD=${PG_PASSWORD}
-      - KONG_PG_DATABASE=${PG_DATABASE}
+      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
       - KONG_PROXY_ACCESS_LOG=/dev/stdout
       - KONG_ADMIN_ACCESS_LOG=/dev/stdout
       - KONG_PROXY_ERROR_LOG=/dev/stderr
@@ -47,7 +47,7 @@ services:
       - KONG_ADMIN_GUI_AUTH=basic-auth
       - KONG_ENFORCE_RBAC=off
       - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${PG_PASSWORD}","storage":"kong","cookie_secure":false}
-      - KONG_ADMIN_GUI_AUTH_CONF={"credential_names":["admin"],"header_names":["apikey"]}
+      - KONG_ADMIN_GUI_AUTH_CONF={"creFdential_names":["admin"],"header_names":["apikey"]}
       - KONG_ADMIN_USER=${KONG_ADMIN_USER}
       - KONG_ADMIN_PASSWORD=${KONG_ADMIN_PASSWORD}
     networks:
