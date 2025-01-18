@@ -14,9 +14,6 @@ services:
       - KONG_PG_DATABASE=${PG_DATABASE}
     networks:
       - iomt-network
-    depends_on:
-      kong-database:
-        condition: service_healthy
     restart: on-failure
 
   kong:
@@ -56,8 +53,6 @@ services:
     networks:
       - iomt-network
     depends_on:
-      kong-database:
-        condition: service_healthy
       kong-migration:
         condition: service_completed_successfully
     healthcheck:
