@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  kong-database:
+    image: postgres:latest
+    container_name: postgres-database
+    hostname: ${DATABASE_HOSTNAME}
+    ports:
+      - "${PG_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_DB=${PG_DATABASE}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - iomt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${PG_USER}", "-d", "${PG_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  iomt-network:
+    external: true
+
+volumes:
+  postgres_data:

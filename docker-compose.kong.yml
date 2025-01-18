@@ -1,39 +1,17 @@
 version: '3.8'
 
 services:
-  kong-database:
-    image: postgres:latest
-    container_name: kong-database
-    hostname: ${KONG_DATABASE_HOSTNAME}
-    ports:
-      - "${KONG_PG_PORT}:5432"
-    environment:
-      - POSTGRES_USER=${KONG_PG_USER}
-      - POSTGRES_DB=${KONG_PG_DATABASE}
-      - POSTGRES_PASSWORD=${KONG_PG_PASSWORD}
-    volumes:
-      - kong_data:/var/lib/postgresql/data
-    networks:
-      - iomt-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${KONG_PG_USER}", "-d", "${KONG_PG_DATABASE}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   kong-migration:
     image: kong:latest
     container_name: kong-migration
     command: kong migrations bootstrap
     environment:
       - KONG_DATABASE=postgres
-      - KONG_PG_HOST=${KONG_DATABASE_HOSTNAME}
-      - KONG_PG_PORT=${KONG_PG_PORT}
-      - KONG_PG_USER=${KONG_PG_USER}
-      - KONG_PG_PASSWORD=${KONG_PG_PASSWORD}
-      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
+      - KONG_PG_HOST=${DATABASE_HOSTNAME}
+      - KONG_PG_PORT=${PG_PORT}
+      - KONG_PG_USER=${PG_USER}
+      - KONG_PG_PASSWORD=${PG_PASSWORD}
+      - KONG_PG_DATABASE=${PG_DATABASE}
     networks:
       - iomt-network
     depends_on:
@@ -53,11 +31,11 @@ services:
       - "${KONG_MANAGER_PORT}:8002"  # Kong Manager UI
     environment:
       - KONG_DATABASE=postgres
-      - KONG_PG_HOST=${KONG_DATABASE_HOSTNAME}
-      - KONG_PG_PORT=${KONG_PG_PORT}
-      - KONG_PG_USER=${KONG_PG_USER}
-      - KONG_PG_PASSWORD=${KONG_PG_PASSWORD}
-      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
+      - KONG_PG_HOST=${DATABASE_HOSTNAME}
+      - KONG_PG_PORT=${PG_PORT}
+      - KONG_PG_USER=${PG_USER}
+      - KONG_PG_PASSWORD=${PG_PASSWORD}
+      - KONG_PG_DATABASE=${PG_DATABASE}
       - KONG_PROXY_ACCESS_LOG=/dev/stdout
       - KONG_ADMIN_ACCESS_LOG=/dev/stdout
       - KONG_PROXY_ERROR_LOG=/dev/stderr
@@ -71,7 +49,7 @@ services:
       - KONG_PLUGINS=bundled,jwt,rate-limiting,cors
       - KONG_ADMIN_GUI_AUTH=basic-auth
       - KONG_ENFORCE_RBAC=off
-      - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${KONG_PG_PASSWORD}","storage":"kong","cookie_secure":false}
+      - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${PG_PASSWORD}","storage":"kong","cookie_secure":false}
       - KONG_ADMIN_GUI_AUTH_CONF={"credential_names":["admin"],"header_names":["apikey"]}
       - KONG_ADMIN_USER=${KONG_ADMIN_USER}
       - KONG_ADMIN_PASSWORD=${KONG_ADMIN_PASSWORD}
@@ -93,6 +71,3 @@ services:
 networks:
   iomt-network:
     external: true
-
-volumes:
-  kong_data:
