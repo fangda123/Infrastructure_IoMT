@@ -7,11 +7,15 @@ services:
     command: kong migrations bootstrap
     environment:
       - KONG_DATABASE=postgres
-      - KONG_PG_HOST=${POSTGRES_HOSTNAME}
-      - KONG_PG_PORT=${POSTGRES_PORT}
-      - KONG_PG_USER=${POSTGRES_USER}
-      - KONG_PG_PASSWORD=${POSTGRES_PASSWORD}
-      - KONG_PG_DATABASE=${KONG_PG_DATABASE}
+      - KONG_PG_HOST=${POSTGRES_HOSTNAME:-localhost}
+
+      - KONG_PG_PORT=${POSTGRES_PORT:-5432}
+
+      - KONG_PG_USER=${POSTGRES_USER:-kong}
+
+      - KONG_PG_PASSWORD=${POSTGRES_PASSWORD:-password}
+
+      - KONG_PG_DATABASE=${KONG_PG_DATABASE:-kong}
     networks:
       - iomt-network
     restart: on-failure
@@ -19,13 +23,17 @@ services:
   kong:
     image: kong:latest
     container_name: kong
-    hostname: ${KONG_HOSTNAME}
+    hostname: ${KONG_HOSTNAME:-kong.local}
     ports:
-      - "${KONG_PROXY_PORT}:8000"  # Proxy
-      - "${KONG_PROXY_SSL_PORT}:8443"  # Proxy SSL
-      - "${KONG_ADMIN_PORT}:8001"  # Admin API
-      - "${KONG_ADMIN_SSL_PORT}:8444"  # Admin API SSL
-      - "${KONG_MANAGER_PORT}:8002"  # Kong Manager UI
+      - "${KONG_PROXY_PORT:-8000}:8000"  # Proxy
+
+      - "${KONG_PROXY_SSL_PORT:-8443}:8443"  # Proxy SSL
+
+      - "${KONG_ADMIN_PORT:-8001}:8001"  # Admin API
+
+      - "${KONG_ADMIN_SSL_PORT:-8444}:8444"  # Admin API SSL
+
+      - "${KONG_MANAGER_PORT:-8002}:8002"  # Kong Manager UI
     environment:
       - KONG_DATABASE=postgres
       - KONG_PG_HOST=${POSTGRES_HOSTNAME}
@@ -37,24 +45,27 @@ services:
       - KONG_ADMIN_ACCESS_LOG=/dev/stdout
       - KONG_PROXY_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_ERROR_LOG=/dev/stderr
-      - KONG_ADMIN_LISTEN=0.0.0.0:${KONG_ADMIN_PORT}
-      - KONG_ADMIN_GUI_URL=http://${KONG_HOSTNAME}
+      - KONG_ADMIN_LISTEN=0.0.0.0:${KONG_ADMIN_PORT:-8001}
+
+      - KONG_ADMIN_GUI_URL=http://${KONG_HOSTNAME:-kong.local}
       - KONG_ADMIN_GUI_PATH=/manager
-      - KONG_PROXY_LISTEN=0.0.0.0:${KONG_PROXY_PORT}
-      - KONG_PROXY_LISTEN_SSL=0.0.0.0:${KONG_PROXY_SSL_PORT}
-      - KONG_ADMIN_SSL_LISTEN=0.0.0.0:${KONG_ADMIN_SSL_PORT}
+      - KONG_PROXY_LISTEN=0.0.0.0:${KONG_PROXY_PORT:-8000}
+
+      - KONG_PROXY_LISTEN_SSL=0.0.0.0:${KONG_PROXY_SSL_PORT:-8443}
+
+      - KONG_ADMIN_SSL_LISTEN=0.0.0.0:${KONG_ADMIN_SSL_PORT:-8444}
       - KONG_PLUGINS=bundled,jwt,rate-limiting,cors
       - KONG_ADMIN_GUI_AUTH=basic-auth
       - KONG_ENFORCE_RBAC=off
-      - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${POSTGRES_PASSWORD}","storage":"kong","cookie_secure":false}
+      - KONG_ADMIN_GUI_SESSION_CONF={"secret":"${POSTGRES_PASSWORD:-password}","storage":"kong","cookie_secure":false}
       - KONG_ADMIN_GUI_AUTH_CONF={"creFdential_names":["admin"],"header_names":["apikey"]}
-      - KONG_ADMIN_USER=${KONG_ADMIN_USER}
-      - KONG_ADMIN_PASSWORD=${KONG_ADMIN_PASSWORD}
+      - KONG_ADMIN_USER=${KONG_ADMIN_USER:-admin}
+
+      - KONG_ADMIN_PASSWORD=${KONG_ADMIN_PASSWORD:-admin}
     networks:
       - iomt-network
     depends_on:
-      kong-migration:
-        condition: service_completed_successfully
+      - kong-migration
     healthcheck:
       test: ["CMD", "kong", "health"]
       interval: 10s
