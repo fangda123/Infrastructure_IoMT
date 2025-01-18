@@ -4,18 +4,24 @@ services:
   postgres-database:
     image: postgres:latest
     container_name: postgres-database
-    hostname: ${DATABASE_HOSTNAME}
+    hostname: ${POSTGRES_HOSTNAME}
     ports:
-      - "${PG_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
-      - POSTGRES_USER=${PG_USER}
-      - POSTGRES_DB=${PG_DATABASE}
-      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - iomt-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   iomt-network:
